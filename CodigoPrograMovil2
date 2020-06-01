@@ -1,0 +1,438 @@
+#ViewControllerInicio
+##Login
+
+
+
+
+import UIKit
+import SQLite3
+
+class ViewController: UIViewController {
+
+     var db: OpaquePointer?
+    var statement: OpaquePointer?
+    
+    @IBOutlet weak var usuario2: UITextField!
+    @IBOutlet weak var clave2: UITextField!
+    
+       override func viewDidLoad() {
+           super.viewDidLoad()
+           // Do any additional setup after loading the view.
+           let archivoRutaBD = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("Admin.sqlite")
+           
+           //Abrir la base de datos
+           if sqlite3_open(archivoRutaBD.path, &db ) != SQLITE_OK  {
+               print("Error al abrir la base de datos")
+           }else{
+               print("La base de datos se ha creado y/o abierto correctamente ")
+           }
+           
+           //Se crea la tabla en la base de datos
+           let query:String = "CREATE TABLE  IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apaterno TEXT, amaterno TEXT,edad TEXT, contrasena TEXT,usuario TEXT, rol TEXT);"
+           
+           if sqlite3_exec(db,query,nil,nil,nil) != SQLITE_OK {
+               print("Ocurrio un error al crear la tabla usuarios")
+           }else{
+               print("La tabla usuario se ha creado correctamente en caso de no existir")
+           }
+        let storyboard = UIStoryboard(name: "main", bundle: nil)
+          var vista = storyboard.instantiateViewController(withIdentifier: "registro")
+          
+           
+       }// fin override
+    
+   
+    @IBAction func Entrar(_ sender: UIButton) {
+        let usuarioEntrar : String = usuario2.text!
+        let claveEntrar : String = clave2.text!
+       
+//        esta es la ruta de la base de datos
+        let archivoRutaBD = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("Admin.sqlite")//es mi bd
+                 
+
+        //Abrir la base de datos
+        if sqlite3_open(archivoRutaBD.path, &db ) != SQLITE_OK  {
+            print("Error al abrir la base de datos")
+        }else{
+            print("La base de datos se ha creado y/o abierto correctamente ")
+        }
+//        consulta de la bd esta consulta
+        let query2 = "SELECT rol FROM usuarios WHERE usuario='\(usuarioEntrar)' and contrasena='\(claveEntrar)'"
+        let query3 = " SELECT * FROM usuarios WHERE usuario='\(usuarioEntrar)' and contrasena='\(claveEntrar)' and rol='administrador'"
+         let query4 = " SELECT * FROM usuarios WHERE usuario='\(usuarioEntrar)' and contrasena='\(claveEntrar) and 'rol='profesor'"
+         let query5 = " SELECT * FROM usuarios WHERE usuario='\(usuarioEntrar)' and contrasena='\(claveEntrar)' and rol='alumno'"
+        
+//        se hace la consulta con un if primero mandarà error si no se ejecuta
+        if sqlite3_exec(db,query2,nil,nil,nil) != SQLITE_OK {
+            let error = String(cString: sqlite3_errmsg(db)!)
+            print("no existe usuario \(error)")
+            
+            
+            let alerta = UIAlertController(title: "Mensaje", message: "Usuario y/o contraseña incorrectos", preferredStyle: .alert)
+            
+            alerta.addAction(UIAlertAction(title:"Continuar",style: .default, handler: nil))
+            
+            self.present(alerta,animated:true)
+            
+            
+            
+            
+        }else{
+            print("la consulta ha sido exitosa")
+            
+            if sqlite3_exec(db,query3,nil,nil,nil) != SQLITE_OK {
+                       let error = String(cString: sqlite3_errmsg(db)!)
+                       print("no es administrador \(error)")
+                
+                
+            }else{
+                
+            } //
+            if sqlite3_exec(db,query4,nil,nil,nil) != SQLITE_OK {
+                       let error = String(cString: sqlite3_errmsg(db)!)
+                       print("no es profesor \(error)")
+                
+                
+            }else{
+                let alerta = UIAlertController(title: "Mensaje", message: "bienvenido profesor", preferredStyle: .alert)
+                
+                alerta.addAction(UIAlertAction(title:"Continuar",style: .default, handler: nil))
+                
+                self.present(alerta,animated:true)
+            }//
+            if sqlite3_exec(db,query5,nil,nil,nil) != SQLITE_OK {
+                       let error = String(cString: sqlite3_errmsg(db)!)
+                       print("no existe usuario \(error)")
+                
+                
+            }else{
+                let alerta = UIAlertController(title: "Mensaje", message: "bienvenido alumno", preferredStyle: .alert)
+                
+                alerta.addAction(UIAlertAction(title:"Continuar",style: .default, handler: nil))
+                
+                self.present(alerta,animated:true)
+            }//
+           
+
+//
+        }//fin else
+        
+    }//fin de boton
+        
+               
+        
+    
+    
+//    ver usuarios funciones para crear tablas
+//    boton para ver usuarios
+    
+    @IBAction func verUsuarios(_ sender: UIButton) {
+        
+        
+        
+    }//fin del boton ver
+    
+    
+
+}
+##############################################################################################################################
+#registrosqlite
+import Foundation
+import UIKit
+import SQLite3
+
+class registro: UIViewController {
+    var db: OpaquePointer?
+    var stmt: OpaquePointer?
+    
+    @IBOutlet weak var NombreTxt: UITextField!
+    @IBOutlet weak var aPaternoTxt: UITextField!
+    @IBOutlet weak var aMaternoTxt: UITextField!
+    @IBOutlet weak var EdadTxt: UITextField!
+    @IBOutlet weak var UsuarioTxt: UITextField!
+    @IBOutlet weak var ClaveTxt: UITextField!
+    @IBOutlet weak var RolTxt: UITextField!
+    
+    
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let archivoRutaBD = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false).appendingPathComponent("Admin.sqlite")
+        //Abrir la base de datos
+        if sqlite3_open(archivoRutaBD.path, &db ) != SQLITE_OK  {
+            print("Error al abrir la base de datos")
+        }else{
+            print("La base de datos se ha creado y/o abierto correctamente ")
+        }
+        
+        
+        
+    } //fin de override
+    
+    
+    @IBAction func GuardarReg(_ sender: UIButton) {
+        
+        let nombre : String = NombreTxt.text!
+            let aPaterno : String = aPaternoTxt.text!
+            let aMaterno : String = aMaternoTxt.text!
+            let edad : String = EdadTxt.text!
+            let clave : String = ClaveTxt.text!
+            let usuario : String = UsuarioTxt.text!
+            let rol : String = RolTxt.text!
+            
+           
+            
+            //Validacion
+            if usuario.isEmpty {
+                UsuarioTxt.layer.borderColor = UIColor.red.cgColor
+                return
+            }
+            
+            let query = "INSERT INTO usuarios(nombre,apaterno,amaterno,edad,contrasena,usuario,rol) VALUES (?,?,?,?,?,?,?)"
+
+          if sqlite3_prepare(db,query,-1,&stmt, nil) != SQLITE_OK {
+              let error = String(cString: sqlite3_errmsg(db)!)
+              print("Error al preparar insert: \(error)")
+              return
+          }
+            
+            //Enlace de los datos a la consulta
+            
+            if sqlite3_bind_text(stmt, 1, nombre, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            
+            if sqlite3_bind_text(stmt, 2, aPaterno, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            
+            if sqlite3_bind_text(stmt, 3, aMaterno, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            
+            if sqlite3_bind_text(stmt, 4, edad, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            
+            if sqlite3_bind_text(stmt, 5, clave, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            if sqlite3_bind_text(stmt, 6, usuario, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            if sqlite3_bind_text(stmt, 7, rol, -1, nil) != SQLITE_OK {
+                let error = String(cString: sqlite3_errmsg(db)!)
+                print("Error al enlazar dato: \(error)")
+                return
+            }
+            
+            
+            
+            //Ejecucion
+                   
+                   if sqlite3_step(stmt) != SQLITE_DONE {
+                       let error = String(cString: sqlite3_errmsg(db)!)
+                       print("Error al ejecutar la consulta: \(error)")
+                       return
+                   }
+                   
+                   let alerta = UIAlertController(title: "Mensaje", message: "Usuario agregado Correctamente", preferredStyle: .alert)
+                   
+                   alerta.addAction(UIAlertAction(title:"Continuar",style: .default, handler: nil))
+                   
+                   self.present(alerta,animated:true)
+                   
+                   //Limpiar campos
+            
+            NombreTxt.text = ""
+            aPaternoTxt.text = ""
+            aMaternoTxt.text = ""
+            EdadTxt.text = ""
+            ClaveTxt.text = ""
+            UsuarioTxt.text = ""
+            RolTxt.text = ""
+            
+            
+        
+        
+        
+        
+    }
+    
+    
+    
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+    if segue.destination is ViewController {
+        //Cerrar conexion al finalizar la ventana de registro
+        print("Cerrando conexion")
+        sqlite3_finalize(stmt)
+        sqlite3_close(db)
+        
+    }
+        
+    }
+    
+    
+    
+}//fin de la  clase
+##############################################################################################################################
+
+##Ver lista de tareas 
+#### Antes de hacer el uso de ver pdf primero hay que instalar Alamofire para poder ver los pdf.
+PRIMERO SE UTILIZA EN TERMINAL EL COMANDO 
+-pod ini
+-pod install
+
+
+Agregaremos un TableViewController 
+
+////inicio del codigo
+import UIKit
+
+protocol cellDelegate {
+    func didClickDownloadButton(cell:UITableViewCell)
+    func didClickViewButton(cell:UITableViewCell)
+}
+
+
+class TableViewCell: UITableViewCell {
+
+    var delegate:cellDelegate?
+    
+    @IBOutlet weak var nameLabel: UILabel!
+    
+    @IBOutlet weak var downloadButton: UIButton!
+    @IBOutlet weak var viewButton: UIButton!
+    
+    
+    @IBAction func downloadTapped(_ sender: Any) {
+        print("downloadTapped")
+        
+        delegate?.didClickDownloadButton(cell: self)
+    }
+    
+    @IBAction func viewTapped(_ sender: Any) {
+        print("viewTapped")
+        
+        delegate?.didClickViewButton(cell: self)
+    }
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        viewButton.isEnabled = false
+        // Initialization code
+    }
+
+    override func setSelected(_ selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+
+        // Configure the view for the selected state
+    }
+
+} //fin del codigo
+
+############################################################################################################################
+//READERVIEWCONTROLLER
+// Este es para ver el pdf agregado mediante la vista del iphone.
+
+
+
+//inicio de codigo
+
+
+import UIKit
+
+class ReaderViewController: UIViewController {
+
+    @IBOutlet weak var webView: UIWebView!
+    
+    var urlString:String! = ""
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Do any additional setup after loading the view.
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        let fileURL = URL(fileURLWithPath: self.urlString)
+        let request = URLRequest(url: fileURL)
+        
+        self.webView.loadRequest(request)
+        
+    }
+
+    /*
+    // MARK: - Navigation
+
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        // Get the new view controller using segue.destinationViewController.
+        // Pass the selected object to the new view controller.
+    }
+    */
+
+}///// fin de codigo 
+
+###########################################################################################################################
+
+
+///listas de los alumnos, pero primero se agrega un viewcontroller y TableView.
+
+//////inicio codigo////////
+
+import UIKit
+
+class CalificacionesViewController: UIViewController,UITableViewDataSource, UITableViewDelegate{
+    
+    
+    var banderas:[String] = []
+    
+        
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        banderas=["Humberto Diaz------69", "Celia Mora-----100", "Salvador Cabañas------- 90",
+                  "America Solis ------- 78", "Carlos Matinez ------- 89", "Saul Perez -------- 58",
+        "Gabriela Solorio -------100"]
+        // Do any additional setup after loading the view.
+    }
+    func tableView(_ tableView:UITableView, numberOfRowsInSection section:Int) -> Int
+    {
+        return banderas.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell:UITableViewCell=UITableViewCell(style: UITableViewCellStyle.subtitle, reuseIdentifier: "mycell")
+        cell.textLabel?.text = banderas[indexPath.row]
+        cell.imageView?.image = UIImage(named: banderas[indexPath.row])
+        
+        return cell
+        
+    }
+
+    
+
+}///////////fin de codigo.
